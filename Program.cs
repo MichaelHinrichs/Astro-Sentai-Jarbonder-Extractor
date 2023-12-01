@@ -24,29 +24,34 @@ class Astro_Sentai_Jarbonder_Extractor
 
         for (int i = 0; i < nBlockA; i++)
         {
-            br.BaseStream.Position = blockA[i].offset;
-            byte[] magicBytes = br.ReadBytes(4);
-            string magic = new string(Encoding.UTF7.GetString(magicBytes));
-            string type = "";
-            switch (magic)
-            {
-                case "OggS":
-                    type = ".ogg";
-                    break;
-                case "\u0089PNG":
-                    type = ".png";
-                    break;
-                case "RIFF":
-                    type = ".wav";
-                    break;
-            }
-            bw = new(File.Create(Path.GetDirectoryName(args[0]) + "//" + i + type));
-            bw.Write(magicBytes);
-            bw.Write(br.ReadBytes(blockA[i].size - 4));
-            bw.Close();
+            WriteFile(blockA[i])
         }
     }
 
+    static void WriteFile(BLOCK_A blockA , string file)
+    {
+        br.BaseStream.Position = blockA.offset;
+        bw = new(File.Create(Path.GetDirectoryName(file) + "//" + i + GetType()));
+        bw.Write(magicBytes);
+        bw.Write(br.ReadBytes(blockA.size - 4));
+        bw.Close();
+    }
+
+    static string GetType()
+    {
+        byte[] magicBytes = br.ReadBytes(4);
+        string magic = new string(Encoding.UTF7.GetString(magicBytes));
+        switch (magic)
+        {
+            case "OggS":
+                return ".ogg";
+            case "\u0089PNG":
+                return ".png";
+            case "RIFF":
+                return ".wav";
+        }
+    }
+    
     class BLOCK_A
     {
         int intA = br.ReadInt32();
