@@ -1,10 +1,8 @@
-﻿//Written for Astro Sentai Jarbonder. https://store.steampowered.com/app/1487320/Astro_Sentai_Jarbonder/
-using System.Text;
+//Written for Astro Sentai Jarbonder. https://store.steampowered.com/app/1487320/Astro_Sentai_Jarbonder/
 
 class Astro_Sentai_Jarbonder_Extractor
 {
-    public static BinaryReader br;
-    public static BinaryWriter bw;
+    static BinaryReader br;
     public static void Main(string[] args)
     {
         br = new(File.OpenRead(args[0]));
@@ -24,23 +22,23 @@ class Astro_Sentai_Jarbonder_Extractor
 
         for (int i = 0; i < nBlockA; i++)
         {
-            WriteFile(blockA[i])
+            WriteFile(blockA[i], args[0], i);
         }
     }
 
-    static void WriteFile(BLOCK_A blockA , string file)
+    static void WriteFile(BLOCK_A blockA , string file, int i)
     {
         br.BaseStream.Position = blockA.offset;
-        bw = new(File.Create(Path.GetDirectoryName(file) + "//" + i + GetType()));
-        bw.Write(magicBytes);
-        bw.Write(br.ReadBytes(blockA.size - 4));
+        BinaryWriter bw = new(File.Create(Path.GetDirectoryName(file) + "//" + i + GetType()));
+        br.BaseStream.Position -= 4;
+        bw.Write(br.ReadBytes(blockA.size));
         bw.Close();
     }
 
-    static string GetType()
+    static new string GetType()
     {
         byte[] magicBytes = br.ReadBytes(4);
-        string magic = new string(Encoding.UTF7.GetString(magicBytes));
+        string magic = new string(System.Text.Encoding.UTF7.GetString(magicBytes));
         switch (magic)
         {
             case "OggS":
@@ -49,6 +47,7 @@ class Astro_Sentai_Jarbonder_Extractor
                 return ".png";
             case "RIFF":
                 return ".wav";
+            default: throw new Exception("Unrecognized subfile type.");
         }
     }
     
